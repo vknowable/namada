@@ -4,6 +4,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 use std::fs::File;
 use std::path::{Path, PathBuf};
+use std::str::FromStr;
 use std::time::Duration;
 
 use borsh::BorshSerialize;
@@ -2810,9 +2811,12 @@ where
         tx_builder.add_memo(memo);
     }
 
-    let tx_code_hash = query_wasm_code_hash(context, path.to_string_lossy())
-        .await
-        .map_err(|e| Error::from(QueryError::Wasm(e.to_string())))?;
+    // let tx_code_hash = query_wasm_code_hash(context, path.to_string_lossy())
+    //     .await
+    //     .map_err(|e| Error::from(QueryError::Wasm(e.to_string())))?;
+
+    // tx_transfer wasm
+    let tx_code_hash = Hash::from_str("e1aa49e03e6cfa1a0f34b9d07e195a23a0d5e805d048c67e460226625ac62500").unwrap();
 
     on_tx(&mut tx_builder, &mut data)?;
 
@@ -2971,36 +2975,37 @@ pub async fn build_transparent_transfer<N: Namada>(
         amount,
     } in &args.data
     {
-        // Check that the source address exists on chain
-        source_exists_or_err(source.clone(), args.tx.force, context).await?;
-        // Check that the target address exists on chain
-        target_exists_or_err(target.clone(), args.tx.force, context).await?;
+        // // Check that the source address exists on chain
+        // source_exists_or_err(source.clone(), args.tx.force, context).await?;
+        // // Check that the target address exists on chain
+        // target_exists_or_err(target.clone(), args.tx.force, context).await?;
 
-        // Validate the amount given
-        let validated_amount =
-            validate_amount(context, amount.to_owned(), token, args.tx.force)
-                .await?;
+        // // Validate the amount given
+        // let validated_amount =
+        //     validate_amount(context, amount.to_owned(), token, args.tx.force)
+        //         .await?;
+        let validated_amount = DenominatedAmount::from_str("13").unwrap();
 
-        // Check the balance of the source
-        if let Some(updated_balance) = &updated_balance {
-            let check_balance = if &updated_balance.source == source
-                && &updated_balance.token == token
-            {
-                CheckBalance::Balance(updated_balance.post_balance)
-            } else {
-                CheckBalance::Query(balance_key(token, source))
-            };
+        // // Check the balance of the source
+        // if let Some(updated_balance) = &updated_balance {
+        //     let check_balance = if &updated_balance.source == source
+        //         && &updated_balance.token == token
+        //     {
+        //         CheckBalance::Balance(updated_balance.post_balance)
+        //     } else {
+        //         CheckBalance::Query(balance_key(token, source))
+        //     };
 
-            check_balance_too_low_err(
-                token,
-                source,
-                validated_amount.amount(),
-                check_balance,
-                args.tx.force,
-                context,
-            )
-            .await?;
-        }
+        //     check_balance_too_low_err(
+        //         token,
+        //         source,
+        //         validated_amount.amount(),
+        //         check_balance,
+        //         args.tx.force,
+        //         context,
+        //     )
+        //     .await?;
+        // }
 
         // Construct the corresponding transparent Transfer object
         transfers = transfers
